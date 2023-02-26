@@ -55,8 +55,27 @@ class Connection {
       users.delete(this.socket);
     }
   }
+
+  async function authHandler(socket, next) {
+    const {token = null} = socket.handshake.query || {};
+    if (token) {
+        try {
+            const currUserCount = users.size + 1;
+            const currUserName = 'User' + currUserCount;
+            users.set(socket, {
+                id: currUserCount,
+                name: currUserName,
+            });
+            console.log(currUserName);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    next();
+  }
   
   function chat(io) {
+    io.use(authHandler);
     io.on('connection', (socket) => {
       new Connection(io, socket);   
     });
